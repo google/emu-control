@@ -1,0 +1,62 @@
+# Copyright 2021, The Fuchsia Authors.                                                                                                                                             
+#                                                                                                                                                                                  
+# Licensed under the Apache License, Version 2.0 (the "License");                                                                                                                  
+# you may not use this file except in compliance with the License.                                                                                                                 
+# You may obtain a copy of the License at                                                                                                                                          
+#                                                                                                                                                                                  
+#      http://www.apache.org/licenses/LICENSE-2.0                                                                                                                                  
+#                                                                                                                                                                                  
+# Unless required by applicable law or agreed to in writing, software                                                                                                              
+# distributed under the License is distributed on an "AS IS" BASIS,                                                                                                                
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                                                                                         
+# See the License for the specific language governing permissions and                                                                                                              
+# limitations under the License.                                                                                                                                                   
+
+import("//build/go/go_binary.gni")
+import("//build/go/go_library.gni")
+import("//build/go/go_test.gni")
+import("//build/host.gni")
+import("//third_party/protobuf/proto_library.gni")
+
+go_library("emu-control_lib") {
+  sources = [
+    "keyboard.go",
+    "main.go",
+    "main_test.go",
+    "record_audio.go",
+    "record_screen.go",
+  ]
+
+  deps = [
+    "emu-grpc:emu-grpc_lib",
+    "//third_party/golibs:github.com/google/subcommands",
+    "//tools/lib/logger",
+  ]
+}
+
+go_binary("emu-control") {
+  gopackage = "go.fuchsia.dev/fuchsia/tools/emu-control"
+
+  deps = [ ":emu-control_lib" ]
+}
+
+if (is_linux || is_mac) {
+  go_test("emu-control_tests") {
+    gopackages = [ "go.fuchsia.dev/fuchsia/tools/emu-control" ]
+
+    deps = [ ":emu-control_lib" ]
+  }
+}
+
+install_host_tools("host") {
+  deps = [ ":emu-control" ]
+  outputs = [ "emu-control" ]
+}
+
+group("tests") {
+  testonly = true
+  deps = [
+    ":emu-control_tests($host_toolchain)",
+    "emu-grpc:tests",
+  ]
+}

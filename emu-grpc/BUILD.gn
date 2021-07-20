@@ -1,0 +1,48 @@
+# Copyright 2021, The Fuchsia Authors.                                                                                                                                             
+#                                                                                                                                                                                  
+# Licensed under the Apache License, Version 2.0 (the "License");                                                                                                                  
+# you may not use this file except in compliance with the License.                                                                                                                 
+# You may obtain a copy of the License at                                                                                                                                          
+#                                                                                                                                                                                  
+#      http://www.apache.org/licenses/LICENSE-2.0                                                                                                                                  
+#                                                                                                                                                                                  
+# Unless required by applicable law or agreed to in writing, software                                                                                                              
+# distributed under the License is distributed on an "AS IS" BASIS,                                                                                                                
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                                                                                         
+# See the License for the specific language governing permissions and                                                                                                              
+# limitations under the License.                                                                                                                                                   
+
+import("//build/go/go_library.gni")
+import("//build/go/golden_go_proto.gni")
+import("//build/host.gni")
+
+golden_go_proto("proto") {
+  sources = [ "proto/emulator_controller.proto" ]
+  import_protobuf_full = true
+}
+
+go_library("proto_lib") {
+  source_dir = "proto"
+  sources = [
+    "emulator_controller.pb.go",
+    "emulator_controller_grpc.pb.go",
+  ]
+  deps = [
+    "//third_party/golibs:google.golang.org/grpc",
+    "//third_party/golibs:google.golang.org/protobuf",
+  ]
+}
+
+go_library("emu-grpc_lib") {
+  sources = [ "emu-grpc.go" ]
+  deps = [ ":proto_lib" ]
+}
+
+group("tests") {
+  testonly = true
+
+  # TODO(https://fxbug.dev/72810): proto_library doesn't support grpc-go.
+  if (false) {
+    deps = [ ":proto_goldens" ]
+  }
+}
